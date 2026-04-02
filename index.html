@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Tasks App</title>
+</head>
+<body>
+
+<h2>📝 Tasks App</h2>
+
+<input id="taskInput" placeholder="Enter task" />
+<button onclick="addTask()">Add Task</button>
+
+<ul id="taskList"></ul>
+
+<script>
+const API_URL = "https://zo94hxn7ph.execute-api.eu-west-1.amazonaws.com/prod/tasks";
+
+async function addTask() {
+  const task = document.getElementById("taskInput").value;
+
+  if (!task) {
+    alert("Enter a task");
+    return;
+  }
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ task: task })
+    });
+
+    const data = await res.json();
+    alert("Task added ✅");
+
+    document.getElementById("taskInput").value = "";
+    loadTasks();
+
+  } catch (err) {
+    alert("Error: " + err.message);
+  }
+}
+
+async function loadTasks() {
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+
+    const list = document.getElementById("taskList");
+    list.innerHTML = "";
+
+    data.forEach(item => {
+      const li = document.createElement("li");
+      li.innerHTML = item.task + 
+        " <button onclick=\"deleteTask('" + item.taskId + "')\">❌</button>";
+      list.appendChild(li);
+    });
+
+  } catch (err) {
+    alert("Load error: " + err.message);
+  }
+}
+
+async function deleteTask(id) {
+  try {
+    await fetch(API_URL + "/" + id, {
+      method: "DELETE"
+    });
+
+    alert("Deleted ✅");
+    loadTasks();
+
+  } catch (err) {
+    alert("Delete error: " + err.message);
+  }
+}
+
+loadTasks();
+</script>
+
+</body>
+</html>
